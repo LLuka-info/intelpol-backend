@@ -19,21 +19,19 @@ const UploadBuletin = () => {
     const formData = new FormData();
     formData.append("image", file);
 
-    try {
-      const res = await axios.post("http://localhost:3001/api/cetateni/upload", formData, {
-        headers: { 
-          Authorization: `Bearer ${localStorage.getItem("auth-token")}` // Ensure token is included
-        }
-      });
-
-
-      if (!res.data.success) {
-        throw new Error(res.data.message || "Eroare necunoscută");
+     try {
+    const res = await axios.post("http://localhost:3001/api/cetateni/upload", formData, {
+      headers: { 
+        Authorization: `Bearer ${localStorage.getItem("auth-token")}`
       }
+    });
 
-      setResult(res.data.extractedData);
-      alert("Date extrase din document");
-    } catch (err: any) {
+    if (res.data.extractedData.cnp) {
+      router.push(`/cetateni/${res.data.extractedData.cnp}`);
+    } else {
+      alert("CNP nu a putut fi extras din document!");
+    }
+  } catch (err: any) {
       alert(`Eroare: ${err.response?.data?.message || err.message}`);
     } finally {
       setLoading(false);
@@ -62,15 +60,6 @@ const UploadBuletin = () => {
           {loading ? "Procesare..." : "Procesează Imagine"}
         </button>
       </div>
-
-      {result && (
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-xl font-bold mb-2">Date extrase:</h2>
-          <p className="mb-1">Nume: {result.fullName || "-"}</p>
-          <p className="mb-1">CNP: {result.cnp || "-"}</p>
-          <p>Adresă: {result.address || "-"}</p>
-        </div>
-      )}
     </div>
   );
 };

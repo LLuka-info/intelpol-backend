@@ -5,22 +5,23 @@ require("dotenv").config();
 
 const authRoutes = require("./Routes/AuthRoutes");
 const citizenRoutes = require("./Routes/CetateniRoute");
+const ofiteriRoutes = require("./Routes/OfiteriRoute");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// Register API Routes
+
 app.use("/api/auth", authRoutes);
 app.use("/api/cetateni", citizenRoutes);
+app.use("/api/ofiteri", ofiteriRoutes); 
 
-// Basic route
+
 app.get("/", (req, res) => {
   res.send("✅ MDT Police Server is running.");
 });
 
-// Connect DB and Start Server
 conectareDB();
 
 const port = 3001;

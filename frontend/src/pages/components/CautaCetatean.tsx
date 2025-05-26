@@ -21,7 +21,7 @@ const CautaCetatean = () => {
 
     const handleSearch = async () => {
         try {
-            const res = await axios.post("/api/cetateni/search", { searchType, searchValue }, {
+            const res = await axios.post("http://localhost:3001/api/cetateni/search", { searchType, searchValue }, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("auth-token")}` }
             });
             

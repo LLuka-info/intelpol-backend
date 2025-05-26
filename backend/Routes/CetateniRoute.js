@@ -2,15 +2,47 @@ const express = require("express");
 const auth = require("../middleware/auth");
 const multer = require("multer");
 const axios = require("axios");
-const FormData = require("form-data"); // Explicitly require FormData
+const FormData = require("form-data");
 const sharp = require("sharp");
+const diff = require("deep-diff").diff;
+const Citizen = require("../MongoDB/Schemas/cetateniSchema");
+const AuditLog = require("../MongoDB/Schemas/istoricSchema");
 
 const router = express.Router();
-const upload = multer({ limits: { fileSize: 5 * 1024 * 1024 } }); // Max: 5MB
+const upload = multer({ limits: { fileSize: 5 * 1024 * 1024 } });
 
-// ---- Helper Functions ----
+router.get("/:cnp", auth, async (req, res) => {
+  try {
+    const citizen = await Citizen.findOne({ cnp: req.params.cnp });
+    if (!citizen) return res.status(404).json({ message: "Cetățean negăsit" });
+    res.json(citizen);
+  } catch (err) {
+    res.status(500).json({ message: "Eroare server" });
+  }
+});
 
-// Extract every contiguous substring of length "len" from a string.
+router.put("/:id", auth, async (req, res) => {
+  try {
+    const oldData = await Citizen.findById(req.params.id);
+    const updated = await Citizen.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
+    const changes = diff(oldData.toObject(), updated.toObject());
+    if (Object.keys(changes).length > 0) {
+      const auditLog = new AuditLog({
+        officer: req.officer._id,
+        citizen: req.params.id,
+        changes: changes,
+        timestamp: new Date()
+      });
+      await auditLog.save();
+    }
+
+    res.json(updated);
+  } catch (err) {
+    console.error("Eroare update:", err);
+    res.status(500).json({ message: "Eroare actualizare" });
+  }
+});
 function extractSubstringsOfLength(str, len) {
   const substrings = [];
   for (let i = 0; i <= str.length - len; i++) {
@@ -19,7 +51,6 @@ function extractSubstringsOfLength(str, len) {
   return substrings;
 }
 
-// Validate a Romanian CNP using the standard checksum algorithm.
 function validateCNP(cnp) {
   if (!/^\d{13}$/.test(cnp)) return false;
   const weights = [2, 7, 9, 1, 4, 6, 3, 5, 8, 2, 7, 9];
@@ -32,28 +63,31 @@ function validateCNP(cnp) {
   return controlDigit === parseInt(cnp[12], 10);
 }
 
-// ---- Advanced CNP Extraction from OCR Text ----
 function parseIDData(text) {
   const data = {};
-
   console.log("Raw OCR Output:", text);
 
-  // First, correct common OCR misreads: replace common misinterpreted characters.
-  // (For example, sometimes "T" is misread instead of "8" and "I" for "1".)
   let correctedText = text.replace(/T/gi, "8").replace(/I/gi, "1");
 
-  // --- Step 1. Try extracting candidates line by line ---
+  const nameRegex = /Nome.*?\n([A-Za-z]+)\s([A-Za-z]+)/i;
+  const nameMatch = correctedText.match(nameRegex);
+  if (nameMatch) {
+    data.fullName = `${nameMatch[1]} ${nameMatch[2]}`;
+  }
+
+  const addressRegex = /Domiciliu.*?\n(.+)/i;
+  const addressMatch = correctedText.match(addressRegex);
+  if (addressMatch) {
+    data.address = addressMatch[1].replace(/\s+/g, ' ');
+  }
+
   const lines = correctedText.split("\n");
   let candidates = [];
   for (let line of lines) {
-    // Remove spaces
     let cleanLine = line.replace(/\s+/g, "");
-    // Look for sequences of digits in that line.
     const matches = cleanLine.match(/\d+/g);
     if (matches) {
       for (let numStr of matches) {
-        // If a sequence is longer than or equal to 13 digits,
-        // add every contiguous substring of length 13.
         if (numStr.length >= 13) {
           candidates.push(...extractSubstringsOfLength(numStr, 13));
         } else {
@@ -63,16 +97,13 @@ function parseIDData(text) {
     }
   }
 
-  // --- Step 2. Also consider the entire corrected text ---
   const fullCleaned = correctedText.replace(/\s+/g, "");
   const fullCandidates = extractSubstringsOfLength(fullCleaned, 13);
   candidates.push(...fullCandidates);
 
-  // Remove duplicates.
   candidates = [...new Set(candidates)];
   console.log("Candidate number sequences:", candidates);
 
-  // --- Step 3. Check if any candidate passes the CNP checksum test ---
   for (let cand of candidates) {
     if (cand.length === 13 && validateCNP(cand)) {
       data.cnp = cand;
@@ -81,7 +112,6 @@ function parseIDData(text) {
     }
   }
 
-  // --- Step 4. Fallback: if no candidate validates, choose the first 13-digit candidate.
   for (let cand of candidates) {
     if (cand.length === 13) {
       data.cnp = cand;
@@ -94,29 +124,25 @@ function parseIDData(text) {
   return data;
 }
 
-// ---- OCR Upload Endpoint ----
 router.post("/upload", auth, upload.single("image"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: false, message: "Fișier lipsă" });
   }
 
   try {
-    // Preprocess the image for better OCR accuracy:
     const processedImage = await sharp(req.file.buffer)
       .greyscale()
       .resize(2000, 2000, { withoutEnlargement: true })
-      .modulate({ brightness: 1.2, contrast: 1.5 }) // Boost brightness & contrast
+      .modulate({ brightness: 1.2, contrast: 1.5 })
       .sharpen()
       .toBuffer();
 
-    // Create the FormData object AFTER preprocessing:
     const formData = new FormData();
     formData.append("file", processedImage, {
       filename: "image.png",
       contentType: req.file.mimetype,
     });
 
-    // Send image to OCR.Space API:
     const ocrRes = await axios.post(
       "https://api.ocr.space/parse/image",
       formData,
@@ -128,14 +154,12 @@ router.post("/upload", auth, upload.single("image"), async (req, res) => {
       }
     );
 
-    const rawText =
-      ocrRes.data.ParsedResults?.[0]?.ParsedText?.trim() || "";
+    const rawText = ocrRes.data.ParsedResults?.[0]?.ParsedText?.trim() || "";
     if (!rawText) {
       console.error("OCR response empty or invalid.");
       return res.status(500).json({ success: false, message: "OCR nu a returnat text" });
     }
 
-    // Use our advanced extraction function:
     const extracted = parseIDData(rawText);
 
     return res.json({

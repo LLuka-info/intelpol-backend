@@ -6,7 +6,7 @@ export function useRedirectIfLoggedIn() {
   useEffect(() => {
     const token = localStorage.getItem("auth-token");
     if (token) {
-      router.replace("/"); // redirect to home if logged in
+      router.replace("/"); 
     }
   }, [router]);
 }
@@ -16,7 +16,7 @@ export function useRequireAuth() {
   useEffect(() => {
     const token = localStorage.getItem("auth-token");
     if (!token) {
-      router.replace("/login"); // redirect to login if not logged in
+      router.replace("/login"); 
     }
   }, [router]);
 }
