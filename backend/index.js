@@ -9,7 +9,9 @@ const ofiteriRoutes = require("./Routes/OfiteriRoute");
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: 'https://intelpol-infoeducatia.vercel.app/'
+}));
 app.use(express.json());
 
 
