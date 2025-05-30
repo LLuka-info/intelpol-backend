@@ -1,58 +1,541 @@
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background: linear-gradient(to bottom right, #1e1e6f, #0f0f3e);
-  color: white;
-  margin: 0;
-  padding: 0;
-}
-
-.dashboard-container {
-  display: flex;
-  height: 100vh;
-}
-
-.sidebar {
-  background-color: #0a0a2e;
-  width: 250px;
-  padding: 20px;
+.container {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  color: aliceblue;
+  overflow: hidden;
 }
 
-.sidebar h2 {
-  margin-bottom: 2rem;
+.header {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(to right, #e4e4e4, #949494);
+  padding: 0.75rem 1.5rem;
+  border-bottom: 3px solid #888;
+  justify-content: space-between;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.sidebar button {
-  background-color: #3d3dd8;
+.logo {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: black;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.openSidebarButton {
+  display: none;
+}
+.sidebarToggle {
+  background: none;
   border: none;
-  margin: 5px 0;
-  padding: 10px;
-  border-radius: 5px;
-  color: white;
+  color: rgb(236, 236, 236);
+  font-size: 1.2rem;
   cursor: pointer;
+  padding: 5px;
+  margin-right: 5px;
+  display: none;
 }
 
-.sidebar button:hover {
-  background-color: #5757f0;
-}
-
-.main-content {
+.searchWrapper {
   flex: 1;
-  padding: 40px;
+  margin: 0 1.5rem;
+  position: relative;
+  max-width: 600px;
+}
+
+.searchBar {
+  width: 100%;
+  background: white;
+  border-radius: 25px;
+  padding: 0.7rem 1.5rem 0.7rem 45px;
+  font-size: 1rem;
+  border: none;
+  outline: none;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.searchBar:focus {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.searchIcon {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #777;
+}
+
+.profileBox {
+  box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(to top, #0c144a, #0e2a7b);
+  border-radius: 0.5rem;
+  width: 17%;
+  padding: 10px 15px;
   display: flex;
-  flex-direction: column;
+  justify-content: safe;
   align-items: center;
 }
 
-.search-bar {
-  margin-bottom: 20px;
-  width: 60%;
+.profileCircle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  margin-right: 15px;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  box-shadow: 0 0 0 2px #0c144a;
+  flex-shrink: 0;
+  color: #0c144a;
+  font-weight: bold;
+  font-size: 0.9rem;
 }
 
-.search-bar input {
-  width: 100%;
-  padding: 10px;
-  border-radius: 5px;
+.mainContent {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.sidebar {
+  width: 280px;
+  background: linear-gradient(to bottom, #e4e4e4, #949494);
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  border-right: 2px solid #1e2e60;
+  flex-shrink: 0;
+  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease;
+}
+.sidebarVisible {
+  transform: translateX(0);
+}
+
+.sidebarHidden {
+  transform: translateX(-100%);
+}
+
+.sidebarOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 99;
+  display: none;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #0a113a;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #3f51b5;
+  border-radius: 4px;
+}
+
+.sidebar h2 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  text-align: center;
+  color: #283593;
+  padding-bottom: 0.8rem;
+  border-bottom: 2px solid #283593;
+}
+
+.officerCard {
+  background: rgba(13, 26, 79, 0.7);
+  border-radius: 12px;
+  padding: 0.9rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid #283593;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.officerCard:hover {
+  background: rgba(20, 35, 100, 0.8);
+  transform: translateX(5px);
+}
+
+.officerAvatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, #64b5f6, #1976d2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
+  border: 2px solid #bbdefb;
+}
+
+.officerText {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.95rem;
+  flex: 1;
+}
+
+.officerName {
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.officerStatus {
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.statusIndicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+
+.centerPanel {
+  flex: 1;
+  padding: 2rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  overflow-y: auto;
+}
+
+.actionButton {
+  background: linear-gradient(to bottom, #e4e4e4, #949494);
+  color: #1a237e;
+  font-weight: bold;
+  border-radius: 20px;
+  text-align: center;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  justify-items: center;
+  gap: 15px;
+  height:50%;
+}
+
+.actionButton i {
+  font-size: 2.5rem;
+  color: #1a237e;
+}
+
+.actionButton:hover {
+  transform: scale(1.05);
+  background: linear-gradient(to bottom, #ffffff, #dcdcdc);
+  box-shadow: 3px 5px 10px rgba(0, 0, 0, 0.3);
+}
+
+.bottomPanel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: rgba(13, 26, 79, 0.5);
+  border-top: 1px solid #283593;
+}
+
+.datetime {
+  font-size: 1rem;
+  color: #bbdefb;
+}
+
+.logoutButton {
+  background: linear-gradient(to bottom, #e53935, #b71c1c);
+  color: white;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1rem;
   border: none;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.logoutButton:hover {
+  background: linear-gradient(to bottom, #f44336, #d32f2f);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dynamicPanel {
+  grid-column: span 3;
+  background: white;
+  padding: 2rem;
+  border-radius: 20px;
+  color: #1a237e;
+  margin-top: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.panelHeader {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  color: #1a237e;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panelContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.statsCard {
+  background: linear-gradient(to bottom right, #e3f2fd, #bbdefb);
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.statsTitle {
+  font-size: 1.1rem;
+  color: #283593;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statsValue {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #1a237e;
+  text-align: center;
+}
+
+.statsSubtitle {
+  text-align: center;
+  color: #5c6bc0;
+  margin-top: 0.5rem;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  color: #888;
+  pointer-events: none;
+}
+
+.suggestionsBox {
+  position: absolute;
+  top: 100%;
+  left: 5%;
+  width: 100%;
+  background: white;
+  border: none;
+  border-radius: 0 0 25px 25px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 999;
+  font-size: 1rem;
+  color: #333;
+}
+
+.suggestionItem {
+  padding: 0.7rem 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-bottom: 1px solid #eee;
+}
+
+.suggestionItem:hover,
+.highlighted {
+  background-color: #e4e4e4;
+  color: #1a237e;
+}
+
+.closeSidebar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #333;
+  font-size: 1.2rem;
+  cursor: pointer;
+  z-index: 101;
+  display: none;
+}
+
+
+@media (min-width: 769px) {
+  .sidebar {
+    transform: translateX(0) !important;
+  }
+  .sidebarToggle {
+    display: none;
+  }
+}
+/* Responsive design */
+@media (max-width: 1200px) {
+  .centerPanel {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .actionButton {
+    grid-column: span 1;
+  }
+  
+  .dynamicPanel {
+    grid-column: span 2;
+  }
+  .openSidebarButton {
+  display: block;
+}
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 220px;
+  }
+  
+  .centerPanel {
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebarToggle {
+    display: block;
+  }
+    .openSidebarButton {
+  display: block;
+}
+  
+  .sidebar {
+    position: absolute;
+    width: 280px;
+    height: 100%;
+    z-index: 100;
+  }
+  .closeSidebar {
+    display: block;
+  }
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    justify-items: center;
+  }
+
+  .searchWrapper {
+    order: 2;
+    width: 100%;
+    margin: 0;
+    padding: 0 0.5rem;
+    max-width: 340px;
+  }
+  
+  .sidebarOverlay {
+    display: block;
+  }
+  
+  .centerPanel {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+  }
+  
+  .actionButton, 
+  .dynamicPanel {
+    grid-column: span 1;
+  }
+  
+  .profileBox span {
+    display: flex;
+  }
+  .rank {
+    display: none;
+  }
+  
+  .logo {
+    order: 1;
+    justify-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .profileBox {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 0.5rem;
+  }
+  
+  .logo {
+    font-size: 1.2rem;
+  }
+  
+  .searchWrapper {
+    padding: 0 0.25rem;
+  }
+  
+  .actionButton {
+    padding: 1.5rem 0.5rem;
+    font-size: 1rem;
+  }
+  
+  .actionButton i {
+    font-size: 2rem;
+  }
+  
+  .profileBox {
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: auto;
+    max-width: 400px; /* or any suitable max */
+  }
+
+  .profileCircle {
+    margin-right: 8px;
+  }
 }

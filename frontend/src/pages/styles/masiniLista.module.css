@@ -1,0 +1,48 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: linear-gradient(135deg, #0B1762, #666386);
+  padding: 30px;
+  border-radius: 12px;
+  width: 400px;
+  color: white;
+  text-align: center;
+}
+
+.modalTitle {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.modalList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px 0;
+}
+
+.modalList li {
+  margin: 10px 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.modalClose {
+  padding: 8px 16px;
+  background: white;
+  color: black;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}

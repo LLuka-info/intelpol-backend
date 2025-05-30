@@ -2,15 +2,16 @@ const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const Officer = require("../MongoDB/Schemas/ofiteriSchema");
+const auth = require("../Middleware/auth");
 
 router.post("/login", async (req, res) => {
   try {
-    const { badgeNumber, password } = req.body;
-    if (!badgeNumber || !password) {
+    const { fullName, password } = req.body;
+    if (!fullName || !password) {
       return res.status(400).send("Numărul de insignă și parola sunt obligatorii");
     }
 
-    const officer = await Officer.findOne({ badgeNumber });
+    const officer = await Officer.findOne({ fullName });
     if (!officer) return res.status(404).send("Ofițer negăsit");
 
     if (password !== officer.password) return res.status(401).send("Parolă invalidă");
@@ -19,7 +20,6 @@ router.post("/login", async (req, res) => {
       throw new Error("Lipsă configurare JWT");
     }
 
-    // 👉 Setează activ la autentificare
     officer.activePatrol = true;
     await officer.save();
 
@@ -30,7 +30,6 @@ router.post("/login", async (req, res) => {
       officer: {
         _id: officer._id,
         fullName: officer.fullName,
-        badgeNumber: officer.badgeNumber,
         rank: officer.rank
       }
     });
@@ -41,7 +40,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.post("/logout", async (req, res) => {
+router.post("/logout", auth, async (req, res) => {
   try {
     req.officer.activePatrol = false;
     await req.officer.save();

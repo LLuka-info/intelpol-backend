@@ -1,0 +1,139 @@
+/* Rank Insignia Patterns */
+.rankInsignia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Agent Patterns */
+.gradAgent::before {
+  content: "▮";
+  font-size: 14px;
+  color: #333;
+    margin-left: -2.5px;
+}
+
+.gradAgentPrincipal::before {
+  content: "▮▮";
+  font-size: 14px;
+  letter-spacing: -3px;
+    margin-left: -2.5px;
+  color: #333;
+}
+
+.gradAgentSefAdjunct::before {
+  content: "▮▮▮";
+  font-size: 14px;
+  letter-spacing: -3px;
+  margin-left: -2.5px;
+  color: #333;
+}
+
+.gradAgentSef::before {
+  content: "▮▮▮▮";
+  font-size: 14px;
+  letter-spacing: -3px;
+  margin-left: -2.5px;
+  color: #333;
+}
+
+.gradAgentSefPrincipal::before {
+  content: "▮▮▮▮▮";
+  font-size: 14px;
+  letter-spacing: -3px;
+    margin-left: -2.5px;
+  color: #333;
+}
+
+/* Inspector Patterns */
+.gradSubinspector::before {
+  content: "✶";
+  font-size: 14px;
+    margin-left: -2.5px;
+  color:#000;
+}
+
+.gradInspector::before {
+  content: "✶✶";
+  font-size: 14px;
+  letter-spacing: -3px;
+    margin-left: -2.5px;
+  color: #000;
+  
+}
+
+.gradInspectorPrincipal::before {
+  content: "✶✶✶";
+  font-size: 14px;
+  letter-spacing: -3px;
+  margin-left: -2.5px;
+  color: #000;
+}
+
+/* Comisar Patterns */
+.gradSubcomisar::before {
+  content: "✶";
+  font-size: 16px;
+  letter-spacing: -3px;
+  margin-left: -2.5px;
+  color: #00025a;
+}
+
+.gradComisar::before {
+  content: "✶✶";
+  font-size: 16px;
+  letter-spacing: -3px;
+  margin-left: -2.5px;
+  color: #00025a;
+}
+
+.gradComisarSef::before {
+  content: "✶✶✶";
+  font-size: 16px;
+  letter-spacing: -3px;
+  margin-left: -2.5px;
+  color: #00025a;
+}
+
+/* Chestor Patterns */
+.gradChestor::before {
+  content: "✶";
+    margin-left: -2.5px;
+  font-size: 18px;
+  color: #f32c2c;
+}
+
+.gradChestorPrincipal::before {
+  content: "✶✶";
+  font-size: 18px;
+  letter-spacing: -3px;
+  margin-left: -2.5px;
+  color: #f32c2c;
+}
+
+.gradChestorSefAdjunct::before {
+  content: "✶✶✶";
+  font-size: 18px;
+  letter-spacing: -3px;
+  margin-left: -2.5px;
+  color: #f32c2c;
+}
+
+.gradChestorSef::before {
+  content: "✶✶✶✶";
+  font-size: 18px;
+  letter-spacing: -3px;
+  margin-left: -2.5px;
+  color: #f32c2c;
+}
+
+.gradChestorGeneral::before {
+  content: "✶✶✶✶✶";
+  font-size: 18px;
+  letter-spacing: -3px;
+  margin-left: -2.5px;
+  color: #f32c2c;
+}

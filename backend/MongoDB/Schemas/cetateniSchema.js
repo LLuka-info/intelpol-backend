@@ -21,11 +21,7 @@ const cetateanSchema = new mongoose.Schema({
     },
     address: String,
     drivingInfo: drivingInfoSchema,
-    convictii: [{
-        type: { type: String, enum: ['Amendă', 'Închisoare', 'Comunitate'] },
-        descriere: String,
-        data: { type: Date, default: Date.now }
-    }],
+
     foto: String
 });
 

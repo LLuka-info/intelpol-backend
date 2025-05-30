@@ -1,150 +1,226 @@
-// pages/cetateni/[cnp].tsx
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
+import styles from "../styles/profilCetatean.module.css";
+import modalStyles from "../styles/Istoric.module.css";
+import Istoric from "../../components/Istoric";
+import NumereInmatriculareModal from "../../components/NumereInmatriculareModal";
+import {
+  getBirthdateFromCNP,
+  getAgeFromBirthdate,
+  extractCityCountyStreet
+} from "../../utils/extragereDateCNP-Adresa";
 
 const ProfilCetatean = () => {
   const router = useRouter();
   const { cnp } = router.query;
+
   const [citizen, setCitizen] = useState<any>(null);
-  const [editMode, setEditMode] = useState(false);
+  const [history, setHistory] = useState<any[]>([]);
   const [formData, setFormData] = useState({
-    address: "",
-    drivingInfo: {
-      points: 12,
-      permisSuspendat: false,
-      vehicleInfo: ""
-    }
+    amenzi: "",
+    avertismente: "",
+    observatii: ""
   });
+  const [editMode, setEditMode] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   useEffect(() => {
-    const fetchCitizen = async () => {
+    const fetchData = async () => {
       try {
-        const res = await axios.get(`http://localhost:3001/api/cetateni/${cnp}`, {
+        const authHeader = {
           headers: { Authorization: `Bearer ${localStorage.getItem("auth-token")}` }
-        });
-        setCitizen(res.data);
+        };
+
+        const res = await axios.get(`http://localhost:3001/api/cetateni/${cnp}`, authHeader);
+        const citizenData = res.data;
+
+        setCitizen(citizenData);
         setFormData({
-          address: res.data.address,
-          drivingInfo: res.data.drivingInfo
+          amenzi: "",
+          avertismente: "",
+          observatii: citizenData.observatii || ""
         });
+
+        const historyRes = await axios.get(
+          `http://localhost:3001/api/cetateni/istoric/${citizenData._id}`,
+          authHeader
+        );
+        setHistory(historyRes.data);
       } catch (err) {
-        console.error("Eroare la preluarea datelor:", err);
-        alert("Cetățeanul nu a putut fi găsit");
+        console.error("Eroare la încărcare:", err);
+        alert("Nu s-au putut încărca datele cetățeanului.");
       }
     };
-    
-    if (cnp) fetchCitizen();
+
+    if (cnp) fetchData();
   }, [cnp]);
 
   const handleUpdate = async () => {
     try {
-      await axios.put(`http://localhost:3001/api/cetateni/${citizen._id}`, formData, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("auth-token")}` }
-      });
+      const officerRaw = localStorage.getItem("officer");
+      const agent = officerRaw ? JSON.parse(officerRaw).fullName : "Agent Necunoscut";
+      const now = new Date();
+
+      const createEntries = (type: string, lines: string[]) =>
+        lines.map((descriere) => ({
+          tip: type,
+          descriere: descriere.trim(),
+          data: now.toISOString(),
+          ora: now.toTimeString().slice(0, 5),
+          agent
+        }));
+
+      const newEntries = [
+        ...createEntries("Amendă", formData.amenzi.split("\n").filter(Boolean)),
+        ...createEntries("Avertisment", formData.avertismente.split("\n").filter(Boolean))
+      ];
+
+      const updatedConvictii = [...(citizen.convictii || []), ...newEntries];
+
+      await axios.put(
+        `http://localhost:3001/api/cetateni/${citizen._id}`,
+        {
+          observatii: formData.observatii,
+          convictii: updatedConvictii
+        },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("auth-token")}` }
+        }
+      );
+
+      setCitizen((prev: any) => ({
+        ...prev,
+        observatii: formData.observatii,
+        convictii: updatedConvictii
+      }));
+
+      setFormData({ amenzi: "", avertismente: "", observatii: formData.observatii });
       setEditMode(false);
-      router.reload();
+      alert("Datele au fost actualizate cu succes.");
     } catch (err) {
-      console.error("Eroare la actualizare:", err);
+      console.error("Eroare actualizare:", err);
     }
   };
 
-  if (!citizen) return <div className="p-4">Se încarcă...</div>;
+  if (!citizen) return <div className="p-4 text-white">Se încarcă...</div>;
+
+  const birthDate = getBirthdateFromCNP(citizen.cnp);
+  const age = getAgeFromBirthdate(birthDate);
+  const { judet, oras, strada } = extractCityCountyStreet(citizen.address || "");
+  const vehiclePlates = Array.isArray(citizen.drivingInfo?.vehicleInfo)
+    ? citizen.vehicleInfo.map((v) =>
+        typeof v === "string" ? v : v.numar || JSON.stringify(v)
+      ).filter(Boolean)
+    : typeof citizen.drivingInfo?.vehicleInfo === "string"
+      ? citizen.drivingInfo.vehicleInfo
+          .split(",")
+          .map((v) => v.trim())
+          .filter(Boolean)
+      : [];
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <button onClick={() => router.back()} className="mb-4 text-blue-600 hover:underline">
+    <div className={styles.container}>
+      <button onClick={() => router.back()} className={styles.backButton}>
         ← Înapoi la căutare
       </button>
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold mb-4">{citizen.fullName}</h1>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h2 className="text-lg font-semibold mb-2">Date personale</h2>
-            <p className="mb-2"><strong>CNP:</strong> {citizen.cnp}</p>
-            {editMode ? (
-              <input
-                value={formData.address}
-                onChange={(e) => setFormData({...formData, address: e.target.value})}
-                className="w-full p-2 border rounded mb-2"
-                placeholder="Adresă"
-              />
-            ) : (
-              <p><strong>Adresă:</strong> {citizen.address}</p>
-            )}
+      <div className={styles.profileWrapper}>
+        <div className={styles.leftPanel}>
+          <h2 className={styles.title}>Date personale:</h2>
+          <div className={styles.label}><span>Nume Prenume:</span> {citizen.fullName}</div>
+          <div className={styles.label}><span>Vârsta:</span> {age ?? "—"}</div>
+          <div className={styles.label}><span>Județ:</span> {judet}</div>
+          <div className={styles.label}><span>Oraș:</span> {oras}</div>
+          <div className={styles.label}><span>Adresă:</span> {strada}</div>
+          <div className={styles.label}><span>CNP:</span> {citizen.cnp}</div>
+
+          <div className={styles.label}>
+            <span
+              style={{ color: "#4fc3f7", cursor: "pointer", textDecoration: "underline" }}
+              onClick={() => setShowModal(true)}
+            >
+              Numere de înmatriculare
+            </span>
           </div>
 
-          <div>
-            <h2 className="text-lg font-semibold mb-2">Permis conducere</h2>
-            {editMode ? (
-              <>
-                <div className="mb-2">
-                  <label className="block mb-1">Puncte rămase:</label>
-                  <input
-                    type="number"
-                    value={formData.drivingInfo.points}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      drivingInfo: {...formData.drivingInfo, points: Number(e.target.value)}
-                    })}
-                    className="w-full p-2 border rounded"
-                  />
-                </div>
-                <div className="flex items-center mb-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.drivingInfo.permisSuspendat}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      drivingInfo: {...formData.drivingInfo, permisSuspendat: e.target.checked}
-                    })}
-                    className="mr-2"
-                  />
-                  <label>Permis suspendat</label>
-                </div>
-              </>
-            ) : (
-              <>
-                <p><strong>Puncte:</strong> {citizen.drivingInfo.points}</p>
-                <p><strong>Permis suspendat:</strong> {citizen.drivingInfo.permisSuspendat ? 'Da' : 'Nu'}</p>
-              </>
-            )}
+          <NumereInmatriculareModal
+            open={showModal}
+            onClose={() => setShowModal(false)}
+            vehicleInfo={vehiclePlates}
+          />
+
+          {/* Mobile-only Istoric link */}
+          <div className={`${styles.label} ${styles.mobileOnly}`}>
+            <span
+              style={{ color: "#4fc3f7", cursor: "pointer", textDecoration: "underline" }}
+              onClick={() => setShowHistoryModal(true)}
+            >
+              Istoric
+            </span>
           </div>
 
-          {citizen.convictii?.length > 0 && (
-            <div className="mt-4 col-span-2">
-              <h3 className="text-lg font-semibold mb-2">Condamnări</h3>
-              {citizen.convictii.map((convictie, index) => (
-                <div key={index} className="bg-gray-50 p-2 rounded mb-2">
-                  <p>{convictie.type} - {convictie.descriere}</p>
-                  <p className="text-sm text-gray-500">{new Date(convictie.data).toLocaleDateString()}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
+          <div className={styles.editSection}>
+            {editMode ? (
+              <>
+                <textarea
+                  placeholder="Amenzi (una pe linie)"
+                  value={formData.amenzi}
+                  onChange={(e) => setFormData({ ...formData, amenzi: e.target.value })}
+                  className={styles.textArea}
+                />
+                <textarea
+                  placeholder="Avertismente (una pe linie)"
+                  value={formData.avertismente}
+                  onChange={(e) => setFormData({ ...formData, avertismente: e.target.value })}
+                  className={styles.textArea}
+                />
+                <textarea
+                  placeholder="Observații"
+                  value={formData.observatii}
+                  onChange={(e) => setFormData({ ...formData, observatii: e.target.value })}
+                  className={styles.textArea}
+                />
+                <button onClick={handleUpdate} className={styles.saveButton}>Salvează</button>
+              </>
+            ) : (
+              <div className={styles.label}><span>Modifica date</span></div>
+            )}
+            <button onClick={() => setEditMode(!editMode)} className={styles.editButton}>
+              {editMode ? "Anulează" : "Editează"}
+            </button>
+          </div>
         </div>
 
-        <div className="mt-6">
-          {editMode ? (
-            <button
-              onClick={handleUpdate}
-              className="bg-green-600 text-white px-4 py-2 rounded mr-2"
-            >
-              Salvează modificări
-            </button>
-          ) : (
-            <button
-              onClick={() => setEditMode(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded"
-            >
-              Editează informații
-            </button>
-          )}
+        <div className={styles.rightPanel}>
+          {/* Show inline Istoric on desktop */}
+          <div className={styles.desktopHistory}>
+            <Istoric history={history} />
+          </div>
         </div>
       </div>
+
+      {/* MOBILE HISTORY MODAL */}
+      {showHistoryModal && (
+         <div
+            className={modalStyles.overlay}
+            onClick={() => setShowHistoryModal(false)} // Clicking outside the panel closes modal
+          >
+            <div
+              className={modalStyles.panel}
+              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside panel
+            >
+              <button
+                className={modalStyles.closeBtn}
+                onClick={() => setShowHistoryModal(false)} // Clicking "X" closes modal
+              >
+                ×
+              </button>
+              <Istoric history={history} />
+            </div>
+          </div>
+      )}
     </div>
   );
 };

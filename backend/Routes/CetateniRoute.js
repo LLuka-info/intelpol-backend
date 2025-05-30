@@ -20,21 +20,53 @@ router.get("/:cnp", auth, async (req, res) => {
     res.status(500).json({ message: "Eroare server" });
   }
 });
-
 router.put("/:id", auth, async (req, res) => {
   try {
     const oldData = await Citizen.findById(req.params.id);
-    const updated = await Citizen.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!oldData) return res.status(404).json({ message: "Cetățeanul nu a fost găsit" });
 
-    const changes = diff(oldData.toObject(), updated.toObject());
-    if (Object.keys(changes).length > 0) {
-      const auditLog = new AuditLog({
-        officer: req.officer._id,
-        citizen: req.params.id,
-        changes: changes,
-        timestamp: new Date()
-      });
-      await auditLog.save();
+    const updateData = {
+      observatii: req.body.observatii,
+      convictii: req.body.convictii || []
+    };
+
+    const updated = await Citizen.findByIdAndUpdate(req.params.id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+
+    // Prepare audit changes
+
+    // Use deep-diff to detect all changes
+    const changes = diff(oldData.toObject(), updated.toObject()) || [];
+
+    // Detect newly added convictions (convictii)
+    const oldConvictii = oldData.convictii || [];
+    const newConvictii = updateData.convictii;
+
+    // Find convictions present in new but NOT in old (new additions)
+    const addedConvictii = newConvictii.filter(newC => 
+      !oldConvictii.some(oldC => 
+        oldC.tip === newC.tip && oldC.descriere === newC.descriere
+      )
+    );
+
+    if (changes.length > 0 || addedConvictii.length > 0) {
+      if (!req.officer || !req.officer._id) {
+        console.warn("req.officer or req.officer._id missing, audit log not saved.");
+      } else {
+        // Build detailed audit log entry
+        const auditLogData = {
+          officer: req.officer._id,
+          citizen: req.params.id,
+          changes: changes,
+          timestamp: new Date(),
+          addedConvictii: addedConvictii.length > 0 ? addedConvictii : undefined
+        };
+
+        const auditLog = new AuditLog(auditLogData);
+        await auditLog.save();
+      }
     }
 
     res.json(updated);
@@ -43,6 +75,9 @@ router.put("/:id", auth, async (req, res) => {
     res.status(500).json({ message: "Eroare actualizare" });
   }
 });
+
+
+
 function extractSubstringsOfLength(str, len) {
   const substrings = [];
   for (let i = 0; i <= str.length - len; i++) {
@@ -148,7 +183,7 @@ router.post("/upload", auth, upload.single("image"), async (req, res) => {
       formData,
       {
         headers: {
-          apiKey: "K84008147388957",
+          apiKey: "K81614862488957",
           ...formData.getHeaders(),
         },
       }
@@ -171,6 +206,43 @@ router.post("/upload", auth, upload.single("image"), async (req, res) => {
   } catch (err) {
     console.error("OCR Processing Error:", err);
     return res.status(500).json({ success: false, message: "Eroare procesare buletin" });
+  }
+});
+
+router.post("/search", auth, async (req, res) => {
+  try {
+    const { searchType, searchValue } = req.body;
+    let query = {};
+
+    switch(searchType) {
+      case "CNP":
+        query = { cnp: { $regex: searchValue, $options: 'i' } };
+        break;
+      case "Nume":
+        query = { fullName: { $regex: searchValue, $options: 'i' } };
+        break;
+      case "Adresa":
+        query = { address: { $regex: searchValue, $options: 'i' } };
+        break;
+    }
+
+    const results = await Citizen.find(query).limit(5);
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ message: "Eroare căutare" });
+  }
+});
+
+router.get("/istoric/:citizenId", auth, async (req, res) => {
+  try {
+    const history = await AuditLog.find({ citizen: req.params.citizenId })
+      .populate("officer", "fullName")
+      .sort({ timestamp: -1 });
+
+    res.json(history);
+  } catch (err) {
+    console.error("Eroare la preluarea istoricului:", err);
+    res.status(500).json({ message: "Eroare la preluarea istoricului" });
   }
 });
 
