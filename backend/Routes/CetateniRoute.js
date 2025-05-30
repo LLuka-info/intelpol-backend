@@ -1,5 +1,5 @@
 const express = require("express");
-const auth = require("../middleware/auth");
+const auth = require("../Middleware/auth");
 const multer = require("multer");
 const axios = require("axios");
 const FormData = require("form-data");
