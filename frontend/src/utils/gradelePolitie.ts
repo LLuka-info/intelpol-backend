@@ -1,24 +1,24 @@
-export const getRankSymbol = (rank: string) => {
+const getEpoleti = (rank: string) => {
   const normalizedRank = rank.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   
-  // Agent ranks
+  //Agenti - bare
   if (normalizedRank == "agent") return { symbol: "Ag", className: "gradAgent" };
   if (normalizedRank == "agent principal") return { symbol: "AP", className: "gradAgentPrincipal" };
   if (normalizedRank=="agent sef adjunct") return { symbol: "ASA", className: "gradAgentSefAdjunct" };
   if (normalizedRank=="agent sef") return { symbol: "AS", className: "gradAgentSef" };
   if (normalizedRank=="agent sef principal") return { symbol: "ASP", className: "gradAgentSefPrincipal" };
   
-  // Inspector ranks
+  //Inspectori - stelute negre
   if (normalizedRank=="subinspector") return { symbol: "SI", className: "gradSubinspector" };
   if (normalizedRank=="inspector") return { symbol: "I", className: "gradInspector" };
   if (normalizedRank=="inspector principal") return { symbol: "IP", className: "gradInspectorPrincipal" };
   
-  // Comisar ranks
+  //Comisari - stelute albastre
   if (normalizedRank=="subcomisar") return { symbol: "SC", className: "gradSubcomisar" };
   if (normalizedRank=="comisar") return { symbol: "C", className: "gradComisar" };
   if (normalizedRank=="comisarsef") return { symbol: "CȘ", className: "gradComisarSef" };
   
-  // Chestor ranks
+  //Chestori - stelute rosii
   if (normalizedRank=="chestor") return { symbol: "Ch", className: "gradChestor" };
   if (normalizedRank=="chestorprincipal") return { symbol: "ChP", className: "gradChestorPrincipal" };
   if (normalizedRank=="chestorsefadjunct") return { symbol: "ChSA", className: "gradChestorSefAdjunct" };
@@ -27,3 +27,6 @@ export const getRankSymbol = (rank: string) => {
 
   return { symbol: "?", className: "gradDefault" };
 };
+
+export default getEpoleti
+

@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import axiosClient from "../utils/axiosClient";
-import { useRedirectIfLoggedIn } from "../hooks/useAuthRedirect";
+import { redirectDacaLogat } from "../hooks/useAuthRedirect";
 import styles from "./styles/login.module.css";
 
 const Login = () => {
   const router = useRouter();
-  useRedirectIfLoggedIn();
+  redirectDacaLogat();
 
   const [fullName, setfullName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
+  const handleLogare = async () => {
     setError("");
     if (!fullName || !password) {
       setError("Completați toate câmpurile.");
@@ -51,7 +51,7 @@ return (
         onChange={(e) => setPassword(e.target.value)}
         disabled={loading}
       />
-      <button onClick={handleLogin} disabled={loading}>
+      <button onClick={handleLogare} disabled={loading}>
         {loading ? "Se autentifică..." : "LOGIN"}
       </button>
     </div>

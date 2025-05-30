@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import styles from "../pages/styles/baraofiteri.module.css";
 import rankStyles from "../pages/styles/gradeOfiteri.module.css";
-import { getRankSymbol } from "../utils/gradelePolitie";
+import getEpoleti from "../utils/gradelePolitie";
 
 const OfiteriActivi = () => {
   const [officers, setOfficers] = useState<any[]>([]);
@@ -25,10 +25,10 @@ const OfiteriActivi = () => {
   }, []);
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-200">
+    <div className={styles.ofiteriContainer}>
       <div className="space-y-3">
         {officers.map(officer => {
-          const rankInfo = getRankSymbol(officer.rank);
+          const rankInfo = getEpoleti(officer.rank);
           
           return (
             <div key={officer._id} className={`${styles.ofiteriBox}`}>

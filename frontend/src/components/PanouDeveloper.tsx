@@ -6,7 +6,7 @@ type Officer = {
   fullName: string;
   rank: string;
   role: string;
-  password?: string; // optional for editing
+  password?: string; 
 };
 
 type Citizen = {
@@ -18,7 +18,7 @@ type Citizen = {
   };
 };
 
-const AdminPanel = () => {
+const PanouDev = () => {
   const [mode, setMode] = useState<"officer" | "citizen" | "editOfficer">("officer");
 
   const [newOfficer, setNewOfficer] = useState<Omit<Officer, "_id">>({
@@ -87,7 +87,7 @@ const AdminPanel = () => {
   const handleCreateCitizen = async () => {
     try {
       await axios.post(
-        "http://localhost:3001/api/cetateni",
+        `http://localhost:3001/api/cetateni`,
         newCitizen,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("auth-token")}` },
@@ -206,7 +206,6 @@ const AdminPanel = () => {
         </div>
       )}
 
-      {/* Create Citizen */}
       {mode === "citizen" && (
         <div>
           <h3 className="font-semibold mb-4">Creare Cetățean Nou</h3>
@@ -335,4 +334,4 @@ const AdminPanel = () => {
   );
 };
 
-export default AdminPanel;
+export default PanouDev;

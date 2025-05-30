@@ -1,43 +1,78 @@
-// utils/cnpUtils.ts
-export function getBirthdateFromCNP(cnp: string): Date | null {
+function extrageDataNastereDinCNP(cnp: string): Date | null {
   if (!cnp || cnp.length !== 13) return null;
 
-  const gender = parseInt(cnp[0], 10);
-  const year = parseInt(cnp.slice(1, 3), 10);
-  const month = parseInt(cnp.slice(3, 5), 10) - 1; // zero-based
-  const day = parseInt(cnp.slice(5, 7), 10);
+  const prefix = parseInt(cnp[0], 10);
+  const an = parseInt(cnp.slice(1, 3), 10);
+  const luna = parseInt(cnp.slice(3, 5), 10) - 1; 
+  const zi = parseInt(cnp.slice(5, 7), 10);
 
-  let fullYear = 1900 + year;
-  if (gender >= 5) fullYear = 2000 + year;
+  let anComplet: number;
 
-  return new Date(fullYear, month, day);
-}
-
-export function getAgeFromBirthdate(birthDate: Date | null): number | null {
-  if (!birthDate) return null;
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
+  switch (prefix) {
+    case 1:
+    case 2:
+      anComplet = 1900 + an;
+      break;
+    case 3:
+    case 4:
+      anComplet = 1800 + an;
+      break;
+    case 5:
+    case 6:
+      anComplet = 2000 + an;
+      break;
+    default:
+      return null; 
   }
-  return age;
+
+  const dataNastere = new Date(anComplet, luna, zi);
+  return isNaN(dataNastere.getTime()) ? null : dataNastere;
 }
 
-export function extractCityCountyStreet(address: string): {
+function calcVarsta(dataNastere: Date | null): number | null {
+  if (!dataNastere) return null;
+
+  const azi = new Date();
+  let varsta = azi.getFullYear() - dataNastere.getFullYear();
+
+  const ziuaDeNastereTrecuta =
+    azi.getMonth() > dataNastere.getMonth() ||
+    (azi.getMonth() === dataNastere.getMonth() && azi.getDate() >= dataNastere.getDate());
+
+  if (!ziuaDeNastereTrecuta) {
+    varsta--;
+  }
+
+  return varsta;
+}
+
+
+function extrageJudetOrasStrada(adresa: string): {
   judet: string;
   oras: string;
   strada: string;
 } {
-  let judet = "—", oras = "—", strada = address;
-  const judMatch = address.match(/Jud\.\s*([A-Z]{1,3})/i);
-  const orasMatch = address.match(/\b(Mun\.|Orașul|Orasul|Oraș|Municipiul)\s+([^,]+)/i);
+  let judet = "—";
+  let oras = "—";
+  let strada = adresa;
 
-  const stradaMatch = address.match(/Str\.\s*([^,]+)/i);
+  const regexJudet = /Jud\.?\s*([A-ZĂÂÎȘȚ]{1,3})/i;
+  const regexOras = /\b(?:Mun\.|Municipiul|Orașul|Orasul|Oraș|Oras|Satul|Comuna)\s+([^,]+)/i;
+  const regexStrada = /Str\.?\s*([^,]+)/i;
 
-  if (judMatch) judet = judMatch[1].trim();
-  if (orasMatch) oras = orasMatch[2].trim();
-  if (stradaMatch) strada = "Str. " + stradaMatch[1].trim();
+  const matchJudet = adresa.match(regexJudet);
+  const matchOras = adresa.match(regexOras);
+  const matchStrada = adresa.match(regexStrada);
+
+  if (matchJudet) judet = matchJudet[1].trim();
+  if (matchOras) oras = matchOras[1].trim();
+  if (matchStrada) strada = `Str. ${matchStrada[1].trim()}`;
 
   return { judet, oras, strada };
 }
+
+export {
+  extrageDataNastereDinCNP,
+  calcVarsta,
+  extrageJudetOrasStrada
+};

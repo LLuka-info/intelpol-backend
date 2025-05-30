@@ -4,4 +4,29 @@ body {
   background: linear-gradient(135deg, #0B1762, #666386);
   height: 100vh;
   font-family: 'Segoe UI', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+body::after {
+  content: "";
+  position: absolute;
+  bottom: -10%;
+  right: -10%;
+  width: 50vw;
+  height: 50vw;
+  background-image: url("/favicon.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.05; 
+  transform: rotate(-35deg);
+  pointer-events: none;
+  z-index: -2;
+}
+
+@media (max-width: 768px) {
+    body::after {
+      display: none;
+    }
 }

@@ -1,8 +1,14 @@
+.ofiteriContainer {
+    background: linear-gradient(to bottom, #0c144a, #0e2a7b);
+    height:100%;
+    border-radius: 0.5rem;
+    box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.5);
+}
 .ofiteriBox {
   box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.5);
   background: linear-gradient(to top, #0c144a, #0e2a7b);
   border-radius: 0.5rem;
-  width: 87%;
+  width: 80%;
   margin: 1rem auto;
   padding: 12px 15px;
   display: flex;

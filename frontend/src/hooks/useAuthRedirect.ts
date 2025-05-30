@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
-export function useRedirectIfLoggedIn() {
+function redirectDacaLogat() {
   const router = useRouter();
+
   useEffect(() => {
     const token = localStorage.getItem("auth-token");
     if (token) {
@@ -11,12 +12,23 @@ export function useRedirectIfLoggedIn() {
   }, [router]);
 }
 
-export function useRequireAuth() {
+function useRedirectDacaNelogat() {
+  const [checking, setChecking] = useState(true);
   const router = useRouter();
+
   useEffect(() => {
     const token = localStorage.getItem("auth-token");
     if (!token) {
-      router.replace("/login"); 
+      router.replace("/login");
+    } else {
+      setChecking(false);
     }
   }, [router]);
+
+  return checking;
 }
+
+export {
+  redirectDacaLogat, 
+  useRedirectDacaNelogat 
+};

@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
 import styles from "../styles/profilCetatean.module.css";
-import modalStyles from "../styles/Istoric.module.css";
-import Istoric from "../../components/Istoric";
-import NumereInmatriculareModal from "../../components/NumereInmatriculareModal";
+import IstoricStyles from "../styles/Istoric.module.css";
+import IstoricModal from "../../components/Istoric";
+import NrInmatriculare from "../../components/NumereInmatriculareModal";
 import {
-  getBirthdateFromCNP,
-  getAgeFromBirthdate,
-  extractCityCountyStreet
+  extrageDataNastereDinCNP,
+  calcVarsta,
+  extrageJudetOrasStrada
 } from "../../utils/extragereDateCNP-Adresa";
 
 const ProfilCetatean = () => {
@@ -16,7 +16,7 @@ const ProfilCetatean = () => {
   const { cnp } = router.query;
 
   const [citizen, setCitizen] = useState<any>(null);
-  const [history, setHistory] = useState<any[]>([]);
+  const [Istoric, setIstoric] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     amenzi: "",
     avertismente: "",
@@ -24,7 +24,7 @@ const ProfilCetatean = () => {
   });
   const [editMode, setEditMode] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showIstoricModal, setShowIstoricModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,11 +43,11 @@ const ProfilCetatean = () => {
           observatii: citizenData.observatii || ""
         });
 
-        const historyRes = await axios.get(
-          `http://localhost:3001/api/cetateni/istoric/${citizenData._id}`,
+        const IstoricRes = await axios.get(
+          `http://localhost:3001/api/cetateni/Istoric/${citizenData._id}`,
           authHeader
         );
-        setHistory(historyRes.data);
+        setIstoric(IstoricRes.data);
       } catch (err) {
         console.error("Eroare la încărcare:", err);
         alert("Nu s-au putut încărca datele cetățeanului.");
@@ -106,10 +106,10 @@ const ProfilCetatean = () => {
 
   if (!citizen) return <div className="p-4 text-white">Se încarcă...</div>;
 
-  const birthDate = getBirthdateFromCNP(citizen.cnp);
-  const age = getAgeFromBirthdate(birthDate);
-  const { judet, oras, strada } = extractCityCountyStreet(citizen.address || "");
-  const vehiclePlates = Array.isArray(citizen.drivingInfo?.vehicleInfo)
+  const birthDate = extrageDataNastereDinCNP(citizen.cnp);
+  const age = calcVarsta(birthDate);
+  const { judet, oras, strada } = extrageJudetOrasStrada(citizen.address || "");
+  const numereVehicule = Array.isArray(citizen.drivingInfo?.vehicleInfo)
     ? citizen.vehicleInfo.map((v) =>
         typeof v === "string" ? v : v.numar || JSON.stringify(v)
       ).filter(Boolean)
@@ -145,17 +145,15 @@ const ProfilCetatean = () => {
             </span>
           </div>
 
-          <NumereInmatriculareModal
+          <NrInmatriculare
             open={showModal}
             onClose={() => setShowModal(false)}
-            vehicleInfo={vehiclePlates}
+            vehicleInfo={numereVehicule}
           />
-
-          {/* Mobile-only Istoric link */}
           <div className={`${styles.label} ${styles.mobileOnly}`}>
             <span
               style={{ color: "#4fc3f7", cursor: "pointer", textDecoration: "underline" }}
-              onClick={() => setShowHistoryModal(true)}
+              onClick={() => setShowIstoricModal(true)}
             >
               Istoric
             </span>
@@ -194,30 +192,28 @@ const ProfilCetatean = () => {
         </div>
 
         <div className={styles.rightPanel}>
-          {/* Show inline Istoric on desktop */}
-          <div className={styles.desktopHistory}>
-            <Istoric history={history} />
+          <div className={styles.desktopIstoric}>
+            <IstoricModal history={Istoric} />
           </div>
         </div>
       </div>
 
-      {/* MOBILE HISTORY MODAL */}
-      {showHistoryModal && (
+      {showIstoricModal && (
          <div
-            className={modalStyles.overlay}
-            onClick={() => setShowHistoryModal(false)} // Clicking outside the panel closes modal
+            className={IstoricStyles.overlay}
+            onClick={() => setShowIstoricModal(false)}
           >
             <div
-              className={modalStyles.panel}
-              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside panel
+              className={IstoricStyles.panel}
+              onClick={(e) => e.stopPropagation()} 
             >
               <button
-                className={modalStyles.closeBtn}
-                onClick={() => setShowHistoryModal(false)} // Clicking "X" closes modal
+                className={IstoricStyles.closeBtn}
+                onClick={() => setShowIstoricModal(false)}
               >
                 ×
               </button>
-              <Istoric history={history} />
+              <IstoricModal history={Istoric} />
             </div>
           </div>
       )}

@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 
 const drivingInfoSchema = new mongoose.Schema({
-    points: { type: Number, default: 12 },
-    permisSuspendat: { type: Boolean, default: false },
     vehicleInfo: String
 });
 

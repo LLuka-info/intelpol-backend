@@ -1,4 +1,4 @@
-/* Rank Insignia Patterns */
+/* Epoleti */
 .rankInsignia {
   display: flex;
   align-items: center;
@@ -8,7 +8,7 @@
   height: 100%;
 }
 
-/* Agent Patterns */
+/* Agent Epoleti */
 .gradAgent::before {
   content: "▮";
   font-size: 14px;
@@ -48,7 +48,7 @@
   color: #333;
 }
 
-/* Inspector Patterns */
+/* Inspector Epoleti */
 .gradSubinspector::before {
   content: "✶";
   font-size: 14px;
@@ -73,7 +73,7 @@
   color: #000;
 }
 
-/* Comisar Patterns */
+/* Comisar Epoleti */
 .gradSubcomisar::before {
   content: "✶";
   font-size: 16px;
@@ -98,7 +98,7 @@
   color: #00025a;
 }
 
-/* Chestor Patterns */
+/* Chestor Epoleti */
 .gradChestor::before {
   content: "✶";
     margin-left: -2.5px;

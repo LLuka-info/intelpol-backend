@@ -98,22 +98,6 @@ const CautaCetatean = () => {
           </div>
         )}
       </div>
-
-      {result && (
-        <div className="bg-white p-4 rounded shadow">
-          <h2 className="text-xl font-bold mb-4">{result.fullName}</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p><strong>CNP:</strong> {result.cnp}</p>
-              <p><strong>Adresă:</strong> {result.address}</p>
-            </div>
-            <div>
-              <p><strong>Puncte permis:</strong> {result.drivingInfo.points}</p>
-              <p><strong>Permis suspendat:</strong> {result.drivingInfo.permisSuspendat ? 'Da' : 'Nu'}</p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

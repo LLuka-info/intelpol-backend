@@ -11,6 +11,28 @@ const AuditLog = require("../MongoDB/Schemas/istoricSchema");
 const router = express.Router();
 const upload = multer({ limits: { fileSize: 5 * 1024 * 1024 } });
 
+router.post("/", auth, async (req, res) => {
+  try {
+    const { fullName, cnp, address, drivingInfo } = req.body;
+    if (!fullName || !cnp || !address) {
+      return res.status(400).json({ message: "fullName, cnp și address sunt obligatorii" });
+    }
+
+    const exists = await Citizen.findOne({ cnp });
+    if (exists) {
+      return res.status(409).json({ message: "Cetățean cu acest CNP există deja" });
+    }
+
+    const citizen = new Citizen({ fullName, cnp, address, drivingInfo });
+    await citizen.save();
+
+    return res.status(201).json({ message: "Cetățean creat cu succes", data: citizen });
+  } catch (err) {
+    console.error("Eroare creare cetățean:", err);
+    return res.status(500).json({ message: "Eroare server la creare cetățean" });
+  }
+});
+
 router.get("/:cnp", auth, async (req, res) => {
   try {
     const citizen = await Citizen.findOne({ cnp: req.params.cnp });
@@ -35,16 +57,11 @@ router.put("/:id", auth, async (req, res) => {
       runValidators: true,
     });
 
-    // Prepare audit changes
-
-    // Use deep-diff to detect all changes
     const changes = diff(oldData.toObject(), updated.toObject()) || [];
 
-    // Detect newly added convictions (convictii)
     const oldConvictii = oldData.convictii || [];
     const newConvictii = updateData.convictii;
 
-    // Find convictions present in new but NOT in old (new additions)
     const addedConvictii = newConvictii.filter(newC => 
       !oldConvictii.some(oldC => 
         oldC.tip === newC.tip && oldC.descriere === newC.descriere
@@ -55,7 +72,7 @@ router.put("/:id", auth, async (req, res) => {
       if (!req.officer || !req.officer._id) {
         console.warn("req.officer or req.officer._id missing, audit log not saved.");
       } else {
-        // Build detailed audit log entry
+
         const auditLogData = {
           officer: req.officer._id,
           citizen: req.params.id,
@@ -100,7 +117,6 @@ function validateCNP(cnp) {
 
 function parseIDData(text) {
   const data = {};
-  console.log("Raw OCR Output:", text);
 
   let correctedText = text.replace(/T/gi, "8").replace(/I/gi, "1");
 
@@ -155,7 +171,7 @@ function parseIDData(text) {
     }
   }
 
-  console.warn("CNP not found. Check OCR output formatting.");
+  console.warn("CNP Neidentificat.");
   return data;
 }
 
