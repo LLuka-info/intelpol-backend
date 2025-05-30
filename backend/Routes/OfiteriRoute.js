@@ -3,7 +3,7 @@ const express = require("express");
 const router  = express.Router();
 const Officer = require("../MongoDB/Schemas/ofiteriSchema");
 const Counter = require("../MongoDB/Schemas/idSchema");
-const auth    = require("../middleware/auth");
+const auth    = require("../Middleware/auth");
 
 // GET all officers (admin only)
 router.get("/", auth, async (req, res) => {
